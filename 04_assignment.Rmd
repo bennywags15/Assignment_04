@@ -51,6 +51,10 @@ con_air <- dbConnect(RMySQL::MySQL(),
                      password = "ImhsmflMDSwR")
 ```
 
+```{r}
+dbListFields(con_air, "flights")
+```
+
 
 ```{r}
 airport_smry <-
@@ -89,6 +93,8 @@ airport_smry_df<-
   collect()
 ```
 
+Graph 1: 
+
 ```{r}
 airport_smry_df %>%
   group_by(origin) %>% 
@@ -96,21 +102,64 @@ airport_smry_df %>%
   slice(1) %>%
   arrange(desc(mean_prop_late)) %>% 
   ungroup() %>% 
-  filter(row_number(desc(mean_prop_late)) <= 20) %>% 
+  #filter(row_number(desc(mean_prop_late)) <= 6) %>% 
+  ggplot(aes(x = mean_prop_late,
+             y = avg_len_flight)) +
+  geom_point(size= 1) +
+  geom_text(aes(label=origin),hjust=0, vjust=0, size=3)+
+  #scale_x_continuous(expand = c(0,0),
+                     #labels = scales::percent) +
+  labs(x = "Avg. % of late flights",
+       y = "Avg. Length of Flight(miles)",
+       title = "Airports which had the largest average % of flights that were more than 20 minutes late") +
+  theme_classic()
+```
+Graph 2:
+
+```{r}
+airport_smry_df %>%
+  group_by(origin) %>% 
+  mutate(mean_prop_late = mean(prop_late_over20)) %>% 
+  slice(1) %>%
+  arrange(desc(mean_prop_late)) %>% 
+  ungroup() %>% 
+  filter(row_number(desc(mean_prop_late)) <= 6) %>% 
   ggplot(aes(x = mean_prop_late,
              y = fct_reorder(origin, mean_prop_late))) +
-  geom_col(fill = "green") +
+  geom_col(fill = "red") +
   scale_x_continuous(expand = c(0,0),
                      labels = scales::percent) +
   labs(x = NULL,
        y = NULL,
-       title = "Airports which had the largest average % of flights that were more than 20 minutes late from 2010-2017") +
+       title = "Airports which had the largest monthly average % of flights that were more than 20 minutes late from 2010-2017") +
   theme_classic()
+```
+Graph 3:
+
+```{r}
+airport_smry_df %>%
+  group_by(origin) %>% 
+  mutate(mean_prop_late = mean(prop_late_over20)) %>% 
+  slice(1) %>%
+  arrange(desc(mean_prop_late)) %>% 
+  ungroup() %>% 
+  filter(row_number(desc(mean_prop_late)) <= 3) %>% 
+  ggplot(aes(x = mean_prop_late,
+             y = fct_reorder(origin, mean_prop_late))) +
+  geom_col(fill = "tan") +
+  scale_x_continuous(expand = c(0,0),
+                     labels = scales::percent) +
+  labs(x = NULL,
+       y = NULL,
+       title = "Airports which had the largest monthly average % of flights that were more than 20 minutes late from 2010-2017") +
+  theme_minimal()
 ```
 
 
 
 2. Come up with your own interesting question that data in the airlines database can help you answer. Write a SQL query and equivalent R code chunk to extract the data you need and create an elegant graph to help answer the question. Be sure to write down the question so it is clear. 
+
+Question:
 
 ## Shiny app
 
