@@ -87,6 +87,7 @@ SELECT
 FROM `flights`
 GROUP BY `origin`, `year`, `month`
 ```
+
 ```{r}
 airport_smry_df<-
   airport_smry %>% 
@@ -159,7 +160,45 @@ airport_smry_df %>%
 
 2. Come up with your own interesting question that data in the airlines database can help you answer. Write a SQL query and equivalent R code chunk to extract the data you need and create an elegant graph to help answer the question. Be sure to write down the question so it is clear. 
 
-Question: Which months are the worst for cancellations?
+Question: Which months are the worst for flying?
+
+```{r}
+month_smry <-
+  tbl(con_air, "flights") %>%
+  filter(year>=2017) %>% 
+  group_by(month) %>% 
+  summarize(prop_late_over20 = mean(arr_delay > 20),
+            num_flights = n(),
+            avg_len_flight = mean(air_time),
+            num_cancellations = count(cancelled),
+            avg_dist_flight = mean(distance))
+  
+month_smry 
+```
+```{r}
+month_smry %>% 
+  show_query()
+```
+
+```{sql connection=con_air}
+SELECT
+`month`,
+  AVG(`arr_delay` > 20.0) AS `prop_late_over20`,
+  COUNT(*) AS `num_flights`,
+  AVG(`air_time`) AS `avg_len_flight`,
+  count(`cancelled`) AS `num_cancellations`,
+  AVG(`distance`) AS `avg_dist_flight`
+FROM `flights`
+WHERE (`year` >= 2017.0)
+GROUP BY `month`
+```
+```{r}
+month_smry_df<-
+  month_smry %>% 
+  collect()
+```
+
+
 
 ## Shiny app
 
@@ -177,6 +216,8 @@ Everyone should watch the [Theming Shiny](https://youtu.be/b9WWNO4P2nY) talk by 
 * Use the `bslib` to theme your shiny app!  
 * Publish your app to [shinyapps.io](https://www.shinyapps.io/). There are instructions for doing that on the tutorial I linked to above.   
 * Write a paragraph or two describing your app on your website! Link to the app and your GitHub repository in your post. Include a link to your post here. 
+
+https://benwagner.netlify.app/posts/2021-10-14-mlsshiny/
 
 
 ## Function Friday problems
