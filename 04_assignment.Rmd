@@ -159,7 +159,7 @@ airport_smry_df %>%
 
 2. Come up with your own interesting question that data in the airlines database can help you answer. Write a SQL query and equivalent R code chunk to extract the data you need and create an elegant graph to help answer the question. Be sure to write down the question so it is clear. 
 
-Question:
+Question: Which months are the worst for cancellations?
 
 ## Shiny app
 
