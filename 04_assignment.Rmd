@@ -19,7 +19,8 @@ library(dbplyr)            # for SQL query "cheating" - part of tidyverse but ne
 library(mdsr)              # for accessing some databases - goes with Modern Data Science with R textbook
 library(RMySQL)            # for accessing MySQL databases
 library(RSQLite)           # for accessing SQLite databases
-theme_set(theme_minimal()) # Lisa's favorite theme
+theme_set(theme_minimal())# Lisa's favorite theme
+library(lubridate)
 ```
 
 When you finish the assignment, remove the `#` from the options chunk at the top, so that messages and warnings aren't printed. If you are getting errors in your code, add `error = TRUE` so that the file knits. I would recommend not removing the `#` until you are completely finished.
@@ -165,28 +166,29 @@ Question: Which months are the worst for flying?
 ```{r}
 month_smry <-
   tbl(con_air, "flights") %>%
-  filter(year>=2017) %>% 
-  group_by(month) %>% 
+  filter(year>=2017) %>%   
+  group_by(month) %>%
   summarize(prop_late_over20 = mean(arr_delay > 20),
-            num_flights = n(),
-            avg_len_flight = mean(air_time),
-            num_cancellations = count(cancelled),
-            avg_dist_flight = mean(distance))
+    num_flights = n(),
+    avg_len_flight = mean(air_time),
+    num_cancellations = sum(cancelled),
+    avg_dist_flight = mean(distance))
   
 month_smry 
 ```
+
 ```{r}
 month_smry %>% 
   show_query()
 ```
 
 ```{sql connection=con_air}
-SELECT
+SELECT 
 `month`,
   AVG(`arr_delay` > 20.0) AS `prop_late_over20`,
   COUNT(*) AS `num_flights`,
   AVG(`air_time`) AS `avg_len_flight`,
-  count(`cancelled`) AS `num_cancellations`,
+  SUM(`cancelled`) AS `num_cancellations`,
   AVG(`distance`) AS `avg_dist_flight`
 FROM `flights`
 WHERE (`year` >= 2017.0)
@@ -198,6 +200,27 @@ month_smry_df<-
   collect()
 ```
 
+```{r}
+month_smry_df %>%
+  mutate(month= month.abb[month]) %>% 
+  ggplot(aes(x = num_cancellations,
+             y = prop_late_over20)) +
+  geom_point()+
+  geom_text(aes(label=month),hjust=-.5, vjust=0, size=3) +
+  # scale_y_continuous(expand = c(0,0),
+  #                    labels = scales::percent) +
+  labs(x = "Number of Cancellations",
+       y = "% of late flight by 20 minutes or more ",
+       title = "Which months are the worst to fly?") +
+  theme_minimal()+
+  theme(panel.grid.major.x = element_line(color = "#a3acff", size = 0.2),
+                  panel.grid.major.y = element_line(color = "#193632", size = 0.2),
+                  axis.text.x = element_text(colour = "#193632"),
+                  axis.text.y = element_text(colour = "#193632"),
+                  plot.title = element_text(color="#193632" ),
+                  panel.background = element_rect(fill = "#a2dbd5"),
+                  plot.background = element_rect(fill = "#a2dbd5"))
+```
 
 
 ## Shiny app
