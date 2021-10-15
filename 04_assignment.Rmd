@@ -10,7 +10,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-#knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+#knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, error = TRUE)
 ```
 
 ```{r libraries}
@@ -44,7 +44,7 @@ You will use the `airlines` data from the SQL database that I used in the exampl
   - Although your graph was truly inspirational, you've been requested to "boil it down to a few numbers." Some people just don't appreciate all that effort you put in. And, you need to use the already summarized data that you already pulled in from SQL. Create a table with 6 or fewer rows and 3 or fewer columns that summarizes which airport is the "worst" in terms of late arrivals. Be careful with your calculations. You may consider using the `kable`, `kableExtra`, or `gt` packages to make your table look truly spectacular.
    
 
-```{r, eval=FALSE}
+```{r}
 con_air <- dbConnect(RMySQL::MySQL(), 
                      dbname = "airlines", 
                      host = "mdsr.cdc7tgkkqd0n.us-east-1.rds.amazonaws.com", 
@@ -59,7 +59,8 @@ dbListFields(con_air, "flights")
 
 ```{r}
 airport_smry <-
-  tbl(con_air, "flights") %>% 
+  tbl(con_air, "flights") %>%
+  filter(year== 2017) %>% 
   group_by(origin, year, month) %>% 
   summarize(prop_late_over20 = mean(arr_delay > 20),
             num_flights = n(),
@@ -86,8 +87,10 @@ SELECT
   AVG(`air_time`) AS `avg_len_flight`,
   AVG(`distance`) AS `avg_dist_flight`
 FROM `flights`
+WHERE (`year` = 2017.0)
 GROUP BY `origin`, `year`, `month`
 ```
+
 
 ```{r}
 airport_smry_df<-
@@ -133,7 +136,7 @@ airport_smry_df %>%
                      labels = scales::percent) +
   labs(x = NULL,
        y = NULL,
-       title = "Airports which had the largest monthly average % of flights that were more than 20 minutes late from 2010-2017") +
+       title = "Airports which had the largest monthly average % of flights that were more than 20 minutes late in 2017") +
   theme_classic()
 ```
 Graph 3:
@@ -153,7 +156,7 @@ airport_smry_df %>%
                      labels = scales::percent) +
   labs(x = NULL,
        y = NULL,
-       title = "Airports which had the largest monthly average % of flights that were more than 20 minutes late from 2010-2017") +
+       title = "Airports which had the largest monthly average % of flights that were more than 20 minutes late in 2017") +
   theme_minimal()
 ```
 
@@ -166,7 +169,7 @@ Question: Which months are the worst for flying?
 ```{r}
 month_smry <-
   tbl(con_air, "flights") %>%
-  filter(year>=2017) %>%   
+  filter(year==2017) %>%   
   group_by(month) %>%
   summarize(prop_late_over20 = mean(arr_delay > 20),
     num_flights = n(),
@@ -191,7 +194,7 @@ SELECT
   SUM(`cancelled`) AS `num_cancellations`,
   AVG(`distance`) AS `avg_dist_flight`
 FROM `flights`
-WHERE (`year` >= 2017.0)
+WHERE (`year` = 2017.0)
 GROUP BY `month`
 ```
 ```{r}
